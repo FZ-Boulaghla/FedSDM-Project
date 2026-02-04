@@ -1,0 +1,15 @@
+
+flwr==1.3.0
+protobuf==3.20.3
+cryptography==43.0.3
+
+# Scientific stack compatible with Flower 1.3.0 (numpy < 2.0)
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.4.2
+matplotlib==3.8.4
+
+# TensorFlow for Python 3.11 (CPU build is simpler on Windows)
+tensorflow-cpu==2.14.0
+# If you have CUDA/cuDNN properly installed, you may use:
+# tensorflow==2.14.0
