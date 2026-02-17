@@ -1,0 +1,2 @@
+scenario,variant,energy_j,network_kb,exec_time_ms
+EDGE,TRAFFIC_MEDIUM,421.400,8975585.938,28

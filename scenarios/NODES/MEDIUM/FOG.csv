@@ -1,0 +1,2 @@
+scenario,variant,energy_j,network_kb,exec_time_ms
+FOG,NODES_MEDIUM,1264.200,14141601.563,80

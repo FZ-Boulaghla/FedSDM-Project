@@ -1,0 +1,2 @@
+scenario,variant,energy_j,network_kb,exec_time_ms
+EDGE,LOAD_NORMAL,421.400,4663085.938,47

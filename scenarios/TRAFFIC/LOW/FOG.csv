@@ -1,0 +1,2 @@
+scenario,variant,energy_j,network_kb,exec_time_ms
+FOG,TRAFFIC_LOW,842.800,2365234.375,40
