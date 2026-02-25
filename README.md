@@ -45,8 +45,8 @@ Generated files will appear under `fl_model/results/`:
 - `roc_curve.png`, `pr_curve.png` (figures)  
 - `results_fedsdm.csv` (metrics)  
 
-## iFogSim2 (Java) Integration
-Use the `ifogsim` folder to store your Java class (e.g. `FedSDM_KPI_Batch.java`). Compile & run it separately in your Java IDE.
+## CloudSim Integration
+Use the `CloudSim` folder to store your Java class (e.g. `FedSDM_KPI_Batch.java`). Compile & run it separately in your Java IDE.
 It will generate `pret_a_grapher.csv` with KPIs for Edge/Fog/Cloud scenarios.
 
 ## Structure
@@ -62,7 +62,7 @@ FedSDM-Project/
  │   ├─ server_strategy.py
  │   ├─ train_fl.py
  │   └─ evaluate_fl.py
- ├─ ifogsim/
+ ├─ CloudSim/
  └─ presentation/
 ```
 
