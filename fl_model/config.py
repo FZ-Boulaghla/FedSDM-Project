@@ -3,9 +3,9 @@
 from pathlib import Path
 
 # ECG CSV location (140 features + 1 label column)
-CSV_PATH = Path(__file__).resolve().parent / 'data' / 'ecg.csv'
+CSV_PATH = Path(__file__).resolve().parent.parent / 'data' / 'ecg.csv'
 # If the CSV does not exist, use synthetic data generator
-USE_SYNTHETIC_IF_MISSING = True
+USE_SYNTHETIC_IF_MISSING = False
 N_SAMPLES_SYNTH = 2000
 
 # Core data settings

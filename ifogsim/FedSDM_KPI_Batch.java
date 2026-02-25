@@ -23,44 +23,11 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.*;
 
-/**
- * FedSDM_KPI_Batch — Version "Option C" (MAXI)
- * Génère automatiquement une batterie de scénarios et écrit 1 CSV par (famille, niveau, couche).
- *
- * Arborescence produite (ex.) :
- * scenarios/
- *   BASE/
- *     EDGE.csv
- *     FOG.csv
- *     CLOUD.csv
- *   NODES/
- *     SMALL/EDGE.csv, FOG.csv, CLOUD.csv
- *     MEDIUM/...
- *     LARGE/...
- *   TRAFFIC/
- *     LOW/...
- *     MEDIUM/...
- *     HIGH/...
- *   LOAD/
- *     LOW/...
- *     NORMAL/...
- *     HIGH/...
- *   MIPS/
- *     LOW/...
- *     MEDIUM/...
- *     HIGH/...
- *
- * Colonnes CSV : scenario,variant,energy_j,network_kb,exec_time_ms
- *
- * NB : Durée de simulation arrêtée à 20 min (1200 s) pour chaque run.
- */
+
 public class FedSDM_KPI_Batch {
 
-    /* ============================
-       ====== Paramétrage I/O ======
-       ============================ */
+    /* Paramétrage I/O */
 
-    // Chemin ABSOLU confirmé par l'utilisatrice (Option Q1 = B)
     private static final String BASE_SCENARIOS_DIR =
             "C:\\Users\\fatima zehra\\Downloads\\FedSDM-Project\\FedSDM-Project\\scenarios";
 
@@ -74,14 +41,12 @@ public class FedSDM_KPI_Batch {
     private static final Long SEED = null;
     private static final Random RNG = (SEED == null) ? new Random(System.nanoTime()) : new Random(SEED);
 
-    /* ============================
-       ====== Enums / Variants =====
-       ============================ */
+    /* Enums / Variants */
 
     enum Layer { EDGE, FOG, CLOUD }
 
     enum Family {
-        BASE,         // scénarios de référence
+        BASE,         // scénarios de base
         NODES,        // variation du nombre de nœuds
         TRAFFIC,      // variation volume IO
         LOAD,         // variation du nombre de cloudlets
@@ -96,8 +61,7 @@ public class FedSDM_KPI_Batch {
         // LOAD
         NORMAL,
         // MIPS
-        // Remarque: pour MIPS on réutilise LOW / MEDIUM / HIGH
-        // (MEDIUM n'a pas été défini au-dessus, on l'ajoute ici)
+        // pour MIPS on réutilise LOW / MEDIUM / HIGH
         MEDIUM_LEVEL
     }
 
@@ -118,7 +82,7 @@ public class FedSDM_KPI_Batch {
         // Datacenter/Host
         int      hostCount;
         int      hostMips;     // MIPS par PE
-        int      hostPes;      // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< AJOUT : nb de PEs
+        int      hostPes;      
         int      hostRamMB;
         int      hostBw;
         long     hostStorageMB;
@@ -141,9 +105,7 @@ public class FedSDM_KPI_Batch {
         double   terminateAtSec;
     }
 
-    /* ============================
-       ========= MAIN =============
-       ============================ */
+    /* MAIN  */
     public static void main(String[] args) {
         try {
             // 1) Vérifier / créer le dossier racine scenarios
@@ -168,9 +130,7 @@ public class FedSDM_KPI_Batch {
 
     }
 
-    /* ============================
-       ===== Familles de runs =====
-       ============================ */
+    /* Familles de runs */
 
     /** Scénarios de base (EDGE, FOG, CLOUD) */
     private static void runFamily_BASE() throws Exception {
@@ -353,9 +313,7 @@ public class FedSDM_KPI_Batch {
         }
     }
 
-    /* ==========================================
-       =========== Construction Config ===========
-       ========================================== */
+    /*  Construction Config */
 
     /** Base line par couche (valeurs stables patchées) */
     private static RunConfig buildBaselineConfig(Layer layer) {
@@ -372,66 +330,67 @@ public class FedSDM_KPI_Batch {
             case EDGE:
                 // Hosts
                 cfg.hostCount = 1;
-                cfg.hostMips  = 1000;  // MIPS par PE
-                cfg.hostPes   = 2;     // <<<<<<<<<<<<<<<<< 2 PEs (PATCH clé)
+                cfg.hostMips  = 4000;  // MIPS par PE
+                cfg.hostPes   = 2;     // 2 PEs
                 cfg.hostRamMB = 8192;
                 cfg.hostBw    = 10000;
                 cfg.powerModel = new PowerModelSpecPowerHpProLiantMl110G4Xeon3040();
 
                 // VMs
                 cfg.vmCount = 2;
-                cfg.vmMips  = 400;     // stable avec 2 PEs host
+                cfg.vmMips  = 800;
                 cfg.vmRamMB = 1024;
                 cfg.vmBw    = 2000;
                 cfg.vmSizeMB = 8000;
 
-                // Cloudlets (charge/base)
-                cfg.cloudletCount = 8;
-                cfg.baseLenMI = 240_000_000_000L;
-                cfg.baseInMB  = 150;
-                cfg.baseOutMB = 150;
+                // Cloudlets
+                cfg.cloudletCount = 40;
+                cfg.baseLenMI = cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
+                cfg.baseInMB  = 50;
+                cfg.baseOutMB = 50;
                 break;
 
             case FOG:
                 cfg.hostCount = 2;
-                cfg.hostMips  = 2000;  // MIPS par PE
-                cfg.hostPes   = 2;     // <<<<<<<<<<<<<<<<< 2 PEs (stabilité)
+                cfg.hostMips  = 2000;
+                cfg.hostPes   = 2;
                 cfg.hostRamMB = 16384;
                 cfg.hostBw    = 20000;
-                cfg.powerModel = new PowerModelSpecPowerHpProLiantMl110G4Xeon3040(); // SPECpower G4
+                cfg.powerModel = new PowerModelSpecPowerHpProLiantMl110G4Xeon3040();
 
                 cfg.vmCount = 4;
-                cfg.vmMips  = 400;     // recommandé (au lieu de 200) pour stabilité
+                cfg.vmMips  = 400;
                 cfg.vmRamMB = 2048;
                 cfg.vmBw    = 5000;
                 cfg.vmSizeMB = 10000;
 
-                cfg.cloudletCount = 12;
-                cfg.baseLenMI = 480_000_000_000L;
+                cfg.cloudletCount = 60;
+                cfg.baseLenMI = cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
                 cfg.baseInMB  = 600;
                 cfg.baseOutMB = 600;
                 break;
 
             default: // CLOUD
                 cfg.hostCount = 3;
-                cfg.hostMips  = 4000;  // MIPS par PE
-                cfg.hostPes   = 4;     // <<<<<<<<<<<<<<<<< 4 PEs (CLOUD puissant)
+                cfg.hostMips  = 4000;
+                cfg.hostPes   = 4;
                 cfg.hostRamMB = 32768;
                 cfg.hostBw    = 40000;
-                cfg.powerModel = new PowerModelSpecPowerHpProLiantMl110G5Xeon3075(); // SPECpower G5
+                cfg.powerModel = new PowerModelSpecPowerHpProLiantMl110G5Xeon3075();
 
                 cfg.vmCount = 6;
-                cfg.vmMips  = 400;     // OK
+                cfg.vmMips  = 400;
                 cfg.vmRamMB = 4096;
                 cfg.vmBw    = 10000;
                 cfg.vmSizeMB = 12000;
 
-                cfg.cloudletCount = 16;
-                cfg.baseLenMI = 960_000_000_000L;
+                cfg.cloudletCount = 80;
+                cfg.baseLenMI = cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
                 cfg.baseInMB  = 3000;
                 cfg.baseOutMB = 3000;
                 break;
         }
+
 
         return cfg;
     }
@@ -496,9 +455,7 @@ public class FedSDM_KPI_Batch {
                 break;
         }
     }
-    /* ==========================================
-       ============== Simulation =================
-       ========================================== */
+    /*  Simulation  */
     private static KPI simulate(RunConfig cfg) throws Exception {
         // 1) Initialisation CloudSim
         CloudSim.init(1, Calendar.getInstance(), false);
@@ -633,9 +590,7 @@ public class FedSDM_KPI_Batch {
         return cls;
     }
 
-    /* ==========================================
-       ============= KPI Helpers =================
-       ========================================== */
+    /*  KPI Helpers */
 
     private static double sumNetworkKB(List<Cloudlet> cls) {
         double netKB = 0.0;
@@ -682,9 +637,7 @@ public class FedSDM_KPI_Batch {
         return totalEnergyJ;
     }
 
-    /* ==========================================
-       =============== Utils I/O =================
-       ========================================== */
+    /*  Utils I/O  */
 
     private static void mkDir(String path) {
         File d = new File(path);
@@ -705,9 +658,7 @@ public class FedSDM_KPI_Batch {
         System.out.println(">> CSV écrit : " + f.getAbsolutePath());
     }
 
-    /* ==========================================
-       ============ Helpers Random ===============
-       ========================================== */
+    /*  Helpers Random  */
 
     private static int jitter(int base, double pct) {
         double factor = 1.0 + (RNG.nextDouble() * 2.0 - 1.0) * pct;

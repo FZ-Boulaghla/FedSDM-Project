@@ -1,2 +1,2 @@
 scenario,variant,energy_j,network_kb,exec_time_ms
-FOG,LOAD_HIGH,842.800,47934570.313,47
+FOG,LOAD_HIGH,842.800,46619140.625,56

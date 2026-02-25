@@ -1,2 +1,2 @@
 scenario,variant,energy_j,network_kb,exec_time_ms
-EDGE,MIPS_LOW,421.400,2288085.938,22
+EDGE,MIPS_LOW,421.400,3878906.250,40

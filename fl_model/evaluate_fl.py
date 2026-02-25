@@ -37,7 +37,7 @@ def main():
     err_test   = np.mean((X_test - recon_test)**2, axis=1)
 
     # Find best threshold by maximizing F2
-    quantiles = np.linspace(0.80, 0.99, 40)
+    quantiles = np.linspace(0.20, 0.99, 40)  # Extended range for better sensitivity
     best = None
     for q in quantiles:
         thr = np.quantile(train_mse, q)

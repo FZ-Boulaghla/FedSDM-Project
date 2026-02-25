@@ -44,7 +44,7 @@ def load_dataset():
     else:
         if USE_SYNTHETIC_IF_MISSING:
             X, y = _generate_synthetic_ecg(N_SAMPLES_SYNTH, N_FEATURES)
-            print(f"Synthetic dataset generated → X: {X.shape}, y: {y.shape}")
+            print(f"Synthetic dataset generated -> X: {X.shape}, y: {y.shape}")
         else:
             raise FileNotFoundError(f"CSV not found: {CSV_PATH}")
 
