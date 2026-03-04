@@ -35,11 +35,13 @@ public class FedSDM_KPI_Batch {
     private static final double TERMINATE_AT_SEC = 1200.0;
 
     // Intervalle d'échantillonnage PowerDatacenter (s)
-    private static final double SCHED_INTERVAL_SEC = 0.0001;  // 10x plus fin
+    private static final double SCHED_INTERVAL_SEC = 1.0;
 
     // Variabilité (mets une SEED fixe pour reproductibilité)
-    private static final Long SEED = null;
-    private static final Random RNG = (SEED == null) ? new Random(System.nanoTime()) : new Random(SEED);
+   // private static final Long SEED = null;
+   // private static final Random RNG = (SEED == null) ? new Random(System.nanoTime()) : new Random(SEED);
+    private static final Long SEED = 12345L;
+    private static final Random RNG = new Random(SEED);
 
     /* Enums / Variants */
 
@@ -70,7 +72,8 @@ public class FedSDM_KPI_Batch {
         String   variant;
         double   energyJ;
         double   networkKB;
-        long     execMs;
+        //long     execMs;
+        double latencyMs;
     }
 
     /** Config d'exécution paramétrée pour un run */
@@ -82,7 +85,7 @@ public class FedSDM_KPI_Batch {
         // Datacenter/Host
         int      hostCount;
         int      hostMips;     // MIPS par PE
-        int      hostPes;      
+        int      hostPes;
         int      hostRamMB;
         int      hostBw;
         long     hostStorageMB;
@@ -330,7 +333,7 @@ public class FedSDM_KPI_Batch {
             case EDGE:
                 // Hosts
                 cfg.hostCount = 1;
-                cfg.hostMips  = 4000;  // MIPS par PE
+                cfg.hostMips  = 1000;  // MIPS par PE
                 cfg.hostPes   = 2;     // 2 PEs
                 cfg.hostRamMB = 8192;
                 cfg.hostBw    = 10000;
@@ -345,7 +348,7 @@ public class FedSDM_KPI_Batch {
 
                 // Cloudlets
                 cfg.cloudletCount = 40;
-                cfg.baseLenMI = cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
+                cfg.baseLenMI = 500_000; //cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
                 cfg.baseInMB  = 50;
                 cfg.baseOutMB = 50;
                 break;
@@ -365,7 +368,7 @@ public class FedSDM_KPI_Batch {
                 cfg.vmSizeMB = 10000;
 
                 cfg.cloudletCount = 60;
-                cfg.baseLenMI = cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
+                cfg.baseLenMI = 1_000_000; // cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
                 cfg.baseInMB  = 600;
                 cfg.baseOutMB = 600;
                 break;
@@ -385,13 +388,11 @@ public class FedSDM_KPI_Batch {
                 cfg.vmSizeMB = 12000;
 
                 cfg.cloudletCount = 80;
-                cfg.baseLenMI = cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
+                cfg.baseLenMI = 2_000_000; // cfg.hostMips * cfg.hostPes * (long) TERMINATE_AT_SEC; // dynamique
                 cfg.baseInMB  = 3000;
                 cfg.baseOutMB = 3000;
                 break;
         }
-
-
         return cfg;
     }
 
@@ -455,7 +456,7 @@ public class FedSDM_KPI_Batch {
                 break;
         }
     }
-    /*  Simulation  */
+    /* Simulation */
     private static KPI simulate(RunConfig cfg) throws Exception {
         // 1) Initialisation CloudSim
         CloudSim.init(1, Calendar.getInstance(), false);
@@ -474,35 +475,52 @@ public class FedSDM_KPI_Batch {
         broker.submitCloudletList(cls);
 
         // 4) Planification des battements de coeur (mesures d'énergie)
-        // On sature la file d'événements jusqu'à 1200s pour forcer la durée
-        double measureInterval = 5.0;
+        double measureInterval = 5.0; // intervalle raisonnable
         for (double time = 0.1; time <= cfg.terminateAtSec; time += measureInterval) {
-            // On envoie un message du broker vers le datacenter
             CloudSim.send(brokerId, dc.getId(), time, CloudSimTags.VM_DATACENTER_EVENT, null);
         }
 
         // 5) Lancement
-        long t0 = System.nanoTime();
         CloudSim.startSimulation();
-
-        // On ne fait pas d'update manuel ici pour éviter l'erreur de compilation
-        // L'horloge interne de CloudSim s'arrêtera à la fin du dernier événement programmé
-
         CloudSim.stopSimulation();
-        long t1 = System.nanoTime();
+        CloudSim.terminateSimulation();
 
         // 6) Récupération des KPI
         KPI k = new KPI();
         k.scenario = cfg.layer.name();
         k.variant  = cfg.variantLabel;
-        k.execMs   = Math.round((t1 - t0) / 1_000_000.0);
 
-        // Calcul de l'énergie (assurez-vous d'utiliser la version de sumEnergy avec le "else")
         k.energyJ  = sumEnergy(dc);
         k.networkKB = sumNetworkKB(cls);
 
+        List<Cloudlet> finishedCloudlets = broker.getCloudletReceivedList();
+        k.latencyMs = computeAverageLatency(finishedCloudlets);
+
+        System.out.println(">>> Average simulated latency (ms) = " + k.latencyMs);
+
         return k;
     }
+
+
+    private static double computeAverageLatency(List<Cloudlet> cloudlets) {
+        double totalLatency = 0.0;
+        int count = 0;
+        for (Cloudlet cl : cloudlets) {
+            double latency = 0.0;
+            if (cl.getFinishTime() > 0 && cl.getExecStartTime() >= 0) {
+                latency = cl.getFinishTime() - cl.getExecStartTime();
+            } else if (cl.getActualCPUTime() > 0) {
+                latency = cl.getActualCPUTime();
+            }
+            if (latency > 0) {
+                totalLatency += latency;
+                count++;
+            }
+        }
+        return (count > 0) ? totalLatency / count : 0.0;
+    }
+
+
 
     private static PowerDatacenter createPowerDatacenter(RunConfig cfg) throws Exception {
         List<PowerHost> hostList = new ArrayList<>();
@@ -560,7 +578,7 @@ public class FedSDM_KPI_Batch {
 
             // createVms(...) — remplace le scheduler par TimeShared
             int vmPes = cfg.hostPes;
-            CloudletScheduler scheduler = new CloudletSchedulerTimeShared();
+            CloudletScheduler scheduler = new CloudletSchedulerSpaceShared();
 
             PowerVm vm = new PowerVm(
                     i, userId, mips, vmPes,
@@ -644,16 +662,16 @@ public class FedSDM_KPI_Batch {
         if (!d.exists()) d.mkdirs();
     }
 
+    /* Écriture CSV */
     private static void writeOneLineCsv(String filePath, KPI k) throws Exception {
         File f = new File(filePath);
-        // header si nouveau fichier
         boolean newFile = !f.exists();
         try (PrintWriter pw = new PrintWriter(new FileWriter(f, true))) {
             if (newFile) {
-                pw.println("scenario,variant,energy_j,network_kb,exec_time_ms");
+                pw.println("scenario,variant,energy_j,network_kb,latency_ms");
             }
-            pw.printf(Locale.US, "%s,%s,%.3f,%.3f,%d%n",
-                    k.scenario, k.variant, k.energyJ, k.networkKB, k.execMs);
+            pw.printf(Locale.US, "%s,%s,%.3f,%.3f,%.3f%n",
+                    k.scenario, k.variant, k.energyJ, k.networkKB, k.latencyMs);
         }
         System.out.println(">> CSV écrit : " + f.getAbsolutePath());
     }

@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-FOG,NODES_SMALL,842.800,70166015.625,91
+scenario,variant,energy_j,network_kb,latency_ms
+FOG,NODES_SMALL,4005488.750,69944335.938,2342.883

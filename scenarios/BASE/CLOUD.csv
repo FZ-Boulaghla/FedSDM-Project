@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-CLOUD,BASE,1377.390,479260742.188,177
+scenario,variant,energy_j,network_kb,latency_ms
+CLOUD,BASE,6336011.180,459859375.000,4935.338

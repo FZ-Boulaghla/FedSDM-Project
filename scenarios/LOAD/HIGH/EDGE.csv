@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-EDGE,LOAD_HIGH,421.400,3878906.250,37
+scenario,variant,energy_j,network_kb,latency_ms
+EDGE,LOAD_HIGH,1353726.360,3933593.750,596.150

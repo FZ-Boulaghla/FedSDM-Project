@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-EDGE,BASE,421.400,3834960.938,250
+scenario,variant,energy_j,network_kb,latency_ms
+EDGE,BASE,1390000.080,3879882.813,618.475

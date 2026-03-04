@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-FOG,TRAFFIC_HIGH,842.800,352184570.313,43
+scenario,variant,energy_j,network_kb,latency_ms
+FOG,TRAFFIC_HIGH,4279796.160,344268554.688,2527.167

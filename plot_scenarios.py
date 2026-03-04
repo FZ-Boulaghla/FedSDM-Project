@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-plot_scenarios.py — Agrège tous les CSV sous ./scenarios/ et génère des graphiques par famille
-Usage:
-    python plot_scenarios.py --root "C:/Users/fatima zehra/Downloads/FedSDM-Project/FedSDM-Project/scenarios" --out figures
-
-Prérequis:
-    pip install pandas matplotlib
-"""
-
 import os
 import argparse
 import pandas as pd
@@ -18,10 +8,11 @@ plt.style.use("seaborn-v0_8-whitegrid")
 
 FAMILIES = ["BASE", "NODES", "TRAFFIC", "LOAD", "MIPS"]
 METRICS = [
-    ("energy_j", "Énergie (J)"),
-    ("network_kb", "Réseau (KB)"),
-    ("exec_time_ms", "Temps (ms)"),
+    ("energy_j", "Energy Consumption (J)"),
+    ("network_kb", "Network Traffic (KB)"),
+    ("latency_ms", "Latency (ms)"), 
 ]
+
 
 def thousand_fmt(x, pos=None):
     try:
@@ -30,12 +21,6 @@ def thousand_fmt(x, pos=None):
         return str(x)
 
 def parse_file_metadata(root, fullpath):
-    """
-    Déduit family / level / layer à partir du chemin:
-      scenarios/BASE/EDGE.csv
-      scenarios/NODES/SMALL/EDGE.csv
-      scenarios/TRAFFIC/HIGH/CLOUD.csv
-    """
     rel = os.path.relpath(fullpath, root)
     parts = rel.split(os.sep)
     # parts[0] = family
@@ -58,7 +43,7 @@ def load_all_csv(root):
             full = os.path.join(dirpath, fn)
             try:
                 df = pd.read_csv(full)
-                if not set(["scenario","variant","energy_j","network_kb","exec_time_ms"]).issubset(df.columns):
+                if not set(["scenario","variant","energy_j","network_kb","latency_ms"]).issubset(df.columns):
                     print(f"[WARN] Colonnes manquantes dans {full}, ignoré.")
                     continue
                 family, level, layer = parse_file_metadata(root, full)
@@ -74,7 +59,7 @@ def load_all_csv(root):
     # Types
     all_df["energy_j"] = pd.to_numeric(all_df["energy_j"], errors="coerce")
     all_df["network_kb"] = pd.to_numeric(all_df["network_kb"], errors="coerce")
-    all_df["exec_time_ms"] = pd.to_numeric(all_df["exec_time_ms"], errors="coerce")
+    all_df["latency_ms"] = pd.to_numeric(all_df["latency_ms"], errors="coerce")
     return all_df
 
 def plot_family_metric(df_family, family, metric, ylabel, outdir):
@@ -100,7 +85,7 @@ def plot_family_metric(df_family, family, metric, ylabel, outdir):
 
     ax = pivot.plot(kind="bar", figsize=(7,4))
     ax.set_title(f"{family} — {ylabel}", fontsize=12, weight="bold")
-    ax.set_xlabel("Couche")
+    ax.set_xlabel("Layer")
     ax.set_ylabel(ylabel)
     ax.grid(axis="y", alpha=0.25)
     ax.yaxis.set_major_formatter(FuncFormatter(thousand_fmt))
@@ -139,7 +124,7 @@ def plot_family_dashboard(df_family, family, outdir):
 
         ax = pivot.plot(kind="bar", ax=axes[i], legend=(i==1))
         ax.set_title(ylabel, fontsize=11, weight="bold")
-        ax.set_xlabel("Couche")
+        ax.set_xlabel("Layer")
         ax.set_ylabel(ylabel)
         ax.grid(axis="y", alpha=0.25)
         ax.yaxis.set_major_formatter(FuncFormatter(thousand_fmt))

@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-CLOUD,LOAD_LOW,1377.390,26752929.688,90
+scenario,variant,energy_j,network_kb,latency_ms
+CLOUD,LOAD_LOW,1548097.110,30816406.250,4725.400

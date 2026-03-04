@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-EDGE,MIPS_HIGH,421.400,3975585.938,28
+scenario,variant,energy_j,network_kb,latency_ms
+EDGE,MIPS_HIGH,670692.941,3863281.250,655.075

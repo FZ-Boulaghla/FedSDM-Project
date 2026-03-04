@@ -1,2 +1,2 @@
-scenario,variant,energy_j,network_kb,exec_time_ms
-EDGE,TRAFFIC_LOW,421.400,7606445.313,31
+scenario,variant,energy_j,network_kb,latency_ms
+EDGE,TRAFFIC_LOW,1474186.560,7744140.625,659.700
